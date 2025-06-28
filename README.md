@@ -1,1 +1,1 @@
-# AI4Humanity_HelathCare
+Project based on healthcare

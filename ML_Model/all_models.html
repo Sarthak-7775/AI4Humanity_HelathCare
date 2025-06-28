@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Models Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('https://source.unsplash.com/1600x900/?technology,ai') no-repeat center center/cover;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .link-button {
+            text-decoration: none;
+            color: white;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            padding: 15px 30px;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .link-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Machine Learning Models</h1>
+        <div class="links">
+            <!-- this commented line is th colab notebook  -->
+            <a href="https://1cfdbc68c8e9d72b72.gradio.live/" class="link-button">Test Recommendation System</a>
+            <!-- <a href="https://colab.research.google.com/drive/1gwIkQZotyM55ss80A__w9Qq1vCH6sB_Z#scrollTo=957bCZUfs7B1" class="link-button">Test Recommendation System</a> -->
+            <a href="https://fbcb8c0dbe5597357f.gradio.live/" class="link-button">Hospital Bed Occupancy Prediction</a>
+            <!-- <a href="https://colab.research.google.com/drive/1ncP17XN5pcEvYY9WdljwHsv2noVGvB5_" class="link-button">Hospital Bed Occupancy Prediction</a> -->
+            <a href="priority_scheduling.html" class="link-button">Priority Scheduling</a>
+            <a href="ai_chatbot.html" class="link-button">AI Chatbot</a>
+        </div>
+    </div>
+</body>
+</html>
