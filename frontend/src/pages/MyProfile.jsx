@@ -6,10 +6,10 @@ const MyProfile = () => {
   const[userData, setUserData] = useState({
     name: 'Sam',
     image: assets.profile_pic,
-    email: "samarth@gmail.com",
+    email: "prescripto_dev@gmail.com",
     phone: '8920122',
     address:{
-      line1: "Dilshad Garden",
+      line1: "Swarka, Delhi",
       line2: "Delhi"
     },
     gender: 'Male',
