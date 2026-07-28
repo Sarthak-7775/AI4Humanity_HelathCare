@@ -1,0 +1,18 @@
+# Prescripto Medical Triage Guidelines
+
+## Symptom: Severe Headache
+- Probable Causes: Migraine, Tension Headache, Hypertension, Cluster Headache.
+- Triage Advice: Seek emergency care immediately for a sudden headache that reaches maximum intensity within minutes, a “worst-ever” headache, or headache with neurological symptoms, fever, stiff neck, confusion, or loss of consciousness. Otherwise, arrange prompt clinical assessment.
+- Recommended Tests: Blood Pressure Monitoring, CT Scan (if sudden/severe), MRI Brain.
+- Urgency Level: EMERGENCY for abrupt-onset severe or red-flag symptoms; otherwise MEDIUM.
+## Symptom: Chest Pain
+- Probable Causes: Angina, Myocardial Infarction (Heart Attack), Gastroesophageal Reflux Disease (GERD), Panic Attack, Muscle Strain.
+- Triage Advice: Do not ignore. If pain is crushing, radiates to the left arm or jaw, or is accompanied by shortness of breath and sweating, dispatch an ambulance immediately. If mild and burning after a meal, it may be GERD.
+- Recommended Tests: ECG (Electrocardiogram), Troponin Blood Test, Chest X-Ray.
+- Urgency Level: EMERGENCY.
+
+## Symptom: Persistent Cough and Fever
+- Probable Causes: Viral Upper Respiratory Infection, Influenza, Pneumonia, COVID-19, Bronchitis.
+- Triage Advice: Isolate from others. Stay hydrated and rest. Use over-the-counter fever reducers. If experiencing difficulty breathing or chest pain while coughing, elevate urgency.
+- Recommended Tests: Chest X-Ray, Complete Blood Count (CBC), Sputum Culture, RT-PCR for Viral Panel.
+- Urgency Level: LOW (MEDIUM if breathing is difficult).
