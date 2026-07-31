@@ -31,18 +31,17 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Prescripto API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"], 
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(routes_users.router, prefix="/auth", tags=["Authentication"])
-app.include_router(routes_users.router, tags=["Authentication"])
-app.include_router(routes_reports.router, prefix="/reports", tags=["Medical Reports"])
-app.include_router(routes_routing.router, prefix="/emergency", tags=["Emergency Routing"])
-app.include_router(routes_chatbot.router, prefix="/chatbot", tags=["AI Triage"])
-app.include_router(routes_appointment.router, tags=["Appointments"])
+app.include_router(routes_users.router)
+app.include_router(routes_reports.router)
+app.include_router(routes_routing.router)
+app.include_router(routes_chatbot.router)
+app.include_router(routes_appointment.router)
 
 @app.get("/")
 def health_check():

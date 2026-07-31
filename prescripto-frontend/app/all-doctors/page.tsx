@@ -162,7 +162,7 @@ export default function AllDoctorsPage() {
             </div>
             <Slider
               value={budget}
-              onValueChange={setBudget}
+              onValueChange={(value: number | readonly number[]) => setBudget(Array.isArray(value) ? value : [value])}
               max={300}
               step={10}
               className="mt-2"
@@ -176,7 +176,7 @@ export default function AllDoctorsPage() {
             </div>
             <Slider
               value={distance}
-              onValueChange={setDistance}
+              onValueChange={(value: number | readonly number[]) => setDistance(Array.isArray(value) ? value : [value])}
               max={50}
               step={1}
               className="mt-2"

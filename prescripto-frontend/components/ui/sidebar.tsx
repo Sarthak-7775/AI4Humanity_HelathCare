@@ -503,13 +503,27 @@ function SidebarMenuButton({
   size = "default",
   tooltip,
   className,
+  asChild = false,
+  children,
   ...props
 }: useRender.ComponentProps<"button"> &
   React.ComponentProps<"button"> & {
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
+    asChild?: boolean
   } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const { isMobile, state } = useSidebar()
+
+  const content = asChild && React.isValidElement(children) ? (
+    React.cloneElement(children, {
+      className: cn(sidebarMenuButtonVariants({ variant, size }), className, (children.props as { className?: string }).className),
+    } as Record<string, unknown>)
+  ) : (
+    <button className={cn(sidebarMenuButtonVariants({ variant, size }), className)} {...props}>
+      {children}
+    </button>
+  )
+
   const comp = useRender({
     defaultTagName: "button",
     props: mergeProps<"button">(
@@ -528,7 +542,7 @@ function SidebarMenuButton({
   })
 
   if (!tooltip) {
-    return comp
+    return asChild ? content : comp
   }
 
   if (typeof tooltip === "string") {
@@ -539,7 +553,7 @@ function SidebarMenuButton({
 
   return (
     <Tooltip>
-      {comp}
+      {asChild ? content : comp}
       <TooltipContent
         side="right"
         align="center"

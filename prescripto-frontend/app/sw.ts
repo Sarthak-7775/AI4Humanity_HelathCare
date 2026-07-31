@@ -1,21 +1,27 @@
 import { defaultCache } from "@serwist/next/worker";
-import type { PrecacheEntry, SerwistGlobalConfig } from "@serwist/precaching";
-import { Serwist } from "@serwist/precaching";
 
 declare global {
-  interface WorkerGlobalScope extends SerwistGlobalConfig {
-    __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
+  interface WorkerGlobalScope {
+    __SW_MANIFEST: Array<string> | undefined;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions): void;
+    skipWaiting(): Promise<void>;
+    clients: { claim(): Promise<void> };
+    location: Location;
   }
 }
 
-declare const self: ServiceWorkerGlobalScope;
+declare const self: WorkerGlobalScope;
 
-const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
-  skipWaiting: true,
-  clientsClaim: true,
-  navigationPreload: true,
-  runtimeCaching: defaultCache,
+self.addEventListener("install", (event: any) => {
+  event.waitUntil(self.skipWaiting());
 });
 
-serwist.addEventListeners();
+self.addEventListener("activate", (event: any) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("fetch", (event: any) => {
+  if (event.request.method !== "GET") return;
+
+  event.respondWith(fetch(event.request));
+});

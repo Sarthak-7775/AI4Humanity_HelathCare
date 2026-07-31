@@ -4,6 +4,7 @@ import './globals.css';
 import EmergencyFAB from '@/components/EmergencyFAB';
 import { TopNav } from '@/components/TopNav';
 import { cn } from "@/lib/utils";
+import { Toaster } from 'sonner';
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -29,6 +30,8 @@ export default function RootLayout({
         
         {/* Main Application Content */}
         <main className="flex-1">{children}</main>
+
+        <Toaster richColors closeButton position="top-right" />
 
         {/* Global Emergency Button */}
         <EmergencyFAB />

@@ -1,24 +1,32 @@
 # backend/app/services/notification_service.py
 import os
 
-from twilio.rest import Client
+try:
+    from twilio.rest import Client
+except ImportError:  # pragma: no cover - optional dependency for local/dev environments
+    Client = None
 
 TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE = os.getenv("TWILIO_PHONE")
+
 
 def send_sms_notification(phone_number: str, message: str):
     """
     Sends an SMS notification using Twilio.
     This will be executed as a FastAPI BackgroundTask.
     """
+    if Client is None:
+        print("Twilio is not installed; skipping SMS notification.")
+        return
+
     try:
         client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
+        sent_message = client.messages.create(
             body=message,
             from_=TWILIO_PHONE,
-            to=phone_number
+            to=phone_number,
         )
-        print(f"SMS sent successfully: {message.sid}")
+        print(f"SMS sent successfully: {sent_message.sid}")
     except Exception as e:
         print(f"Failed to send SMS: {e}")

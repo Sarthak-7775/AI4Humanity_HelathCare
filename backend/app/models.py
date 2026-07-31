@@ -27,6 +27,7 @@ class User(Base):
     hashed_password = Column(String)
     phone_number = Column(String)
     role = Column(String, default="patient")  # Roles: 'patient', 'doctor', 'admin'
+    avatar_url = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

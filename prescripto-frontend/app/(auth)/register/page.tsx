@@ -15,7 +15,13 @@ export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    full_name: string;
+    email: string;
+    password: string;
+    phone_number: string;
+    role: string;
+  }>({
     full_name: "",
     email: "",
     password: "",
@@ -68,7 +74,7 @@ export default function RegisterPage() {
 
         <div className="grid gap-2 text-left">
           <Label htmlFor="role">Role</Label>
-          <Select value={formData.role} onValueChange={(val) => setFormData(prev => ({ ...prev, role: val }))}>
+          <Select value={formData.role} onValueChange={(val: string | null) => setFormData(prev => ({ ...prev, role: val ?? "patient" }))}>
             <SelectTrigger>
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>

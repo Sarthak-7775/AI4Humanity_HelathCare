@@ -1,9 +1,9 @@
 // app/appointments/page.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import api from '@/lib/api';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { MapPin, Calendar as CalendarIcon, Clock, CreditCard, XCircle, User } from 'lucide-react';
 
-const MY_APPOINTMENTS = [
+const INITIAL_APPOINTMENTS = [
   {
     id: "apt_1",
     doctor: "Dr. Sarah Jenkins",
@@ -38,6 +38,14 @@ const MY_APPOINTMENTS = [
 ];
 
 export default function AppointmentsPage() {
+    return (
+        <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading appointments...</div>}>
+            <AppointmentsPageContent />
+        </Suspense>
+    );
+}
+
+function AppointmentsPageContent() {
     const searchParams = useSearchParams();
     const defaultTab = searchParams.get('doctor') ? 'book' : 'my-appointments';
     const prefilledDoctor = searchParams.get('doctor') || 'Select Doctor';
@@ -45,29 +53,63 @@ export default function AppointmentsPage() {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [isBooking, setIsBooking] = useState(false);
     const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+    const [appointments, setAppointments] = useState(INITIAL_APPOINTMENTS);
     
     // Dummy available slots for the selected date
     const availableSlots = ['09:00 AM', '10:30 AM', '01:00 PM', '03:30 PM'];
 
     const handleBookSlot = async (slotTime: string) => {
-        // 1. Optimistic UI: Immediately assume success and update the UI 
+        if (!date) {
+            toast.error('Please select a date first.');
+            return;
+        }
+
+        const slotDate = new Date(date);
+        const [time, period] = slotTime.split(' ');
+        const [hourPart, minutePart] = time.split(':');
+        let hours = Number(hourPart);
+        const minutes = Number(minutePart);
+
+        if (period === 'PM' && hours < 12) {
+            hours += 12;
+        }
+        if (period === 'AM' && hours === 12) {
+            hours = 0;
+        }
+
+        slotDate.setHours(hours, minutes, 0, 0);
+
         setIsBooking(true);
         setBookedSlots((prev) => [...prev, slotTime]);
         toast.success(`Booking initiated for ${slotTime}...`);
 
         try {
-            // Connect to the FastAPI endpoint
-            await axios.post('http://localhost:8000/appointments/book', {
-                doctor_id: prefilledDoctor,
-                appointment_time: slotTime,
-                patient_phone: "+911234567890" 
+            const response = await api.post('/appointments/book', {
+                patient_id: 1,
+                doctor_id: 1,
+                hospital_id: 1,
+                appointment_time: slotDate.toISOString(),
+                patient_phone: '+911234567890',
             });
 
-            // Success confirmed by backend (Twilio SMS sent) 
-            toast.success('Appointment Confirmed! You will receive an SMS shortly.');
+            setAppointments((prev) => [
+                {
+                    id: response.data.appointment_id?.toString() || `${Date.now()}`,
+                    doctor: prefilledDoctor,
+                    speciality: 'Consultation',
+                    address: 'Prescripto Partner Hospital',
+                    date: slotDate.toISOString().split('T')[0],
+                    time: slotTime,
+                    status: 'Upcoming',
+                    paid: false,
+                    fee: '$80',
+                },
+                ...prev,
+            ]);
+
+            toast.success(response.data.message || 'Appointment Confirmed! You will receive an SMS shortly.');
 
         } catch (error: any) {
-            // 2. Revert State: If backend returns 400 (Double Booking) 
             setBookedSlots((prev) => prev.filter((time) => time !== slotTime));
 
             if (error.response?.status === 400) {
@@ -96,7 +138,7 @@ export default function AppointmentsPage() {
 
                 {/* My Appointments Tab */}
                 <TabsContent value="my-appointments" className="space-y-6">
-                    {MY_APPOINTMENTS.map((apt) => (
+                    {appointments.map((apt) => (
                         <Card key={apt.id} className="overflow-hidden border-border bg-card">
                             <CardContent className="p-0 flex flex-col md:flex-row">
                                 <div className="p-6 md:w-2/3 space-y-4">

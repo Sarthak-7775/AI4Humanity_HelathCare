@@ -38,10 +38,11 @@ export default function LoginPage() {
       const decoded: any = jwtDecode(access_token);
       
       const user: User = {
-        id: decoded.id || 1, // Fallback since current JWT only has sub and role
+        id: decoded.id || 1,
         email: decoded.sub,
         role: decoded.role || 'patient',
-        full_name: decoded.name || decoded.sub.split('@')[0], 
+        full_name: decoded.name || decoded.sub.split('@')[0],
+        avatar_url: decoded.avatar_url ?? null,
       };
 
       setAuth(access_token, user);

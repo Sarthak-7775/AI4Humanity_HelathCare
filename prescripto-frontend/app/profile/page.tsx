@@ -1,22 +1,19 @@
 // app/profile/page.tsx
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 import { FileText, UploadCloud, ShieldCheck, User, Activity, HeartPulse } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-// We import Document and Page from react-pdf, but in a real app we need to configure the worker.
-// Using a dynamic import or handling the worker is necessary, but for UI demonstration we will mock the PDF view if it fails, or use standard setup.
-import { Document, Page, pdfjs } from 'react-pdf';
-// Set worker path to CDN to avoid local setup issues
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/lib/store/useAuth';
+import { PDFViewer } from "@/components/PDFViewer";
 
 const VITALS_DATA = [
     { date: 'Jan 10', systolic: 120, diastolic: 80, sugar: 95 },
@@ -28,8 +25,14 @@ const VITALS_DATA = [
 
 export default function UnifiedProfilePage() {
     const [isUploading, setIsUploading] = useState(false);
+    const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+    const [selectedDocType, setSelectedDocType] = useState('General Report');
     const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
     const [numPages, setNumPages] = useState<number | null>(null);
+
+    const user = useAuth((state) => state.user);
+    const token = useAuth((state) => state.token);
+    const setAuth = useAuth((state) => state.setAuth);
 
     const [reports, setReports] = useState<{ id: string, name: string, url: string }[]>([
         { id: '1', name: 'Blood_Test_Results_2026.pdf', url: '/sample.pdf' } // Dummy PDF URL
@@ -39,27 +42,32 @@ export default function UnifiedProfilePage() {
         const file = acceptedFiles[0];
         if (!file) return;
 
+        if (!user || !token) {
+            toast.error('Please log in before uploading medical reports.');
+            return;
+        }
+
         setIsUploading(true);
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('document_type', selectedDocType);
 
         try {
-            // Mocking the upload process since backend might not be available
-            setTimeout(() => {
-                const fakeUrl = URL.createObjectURL(file);
-                setReports((prev) => [...prev, { id: Date.now().toString(), name: file.name, url: fakeUrl }]);
-                toast.success('Medical report securely uploaded to cloud storage.');
-                setIsUploading(false);
-            }, 1500);
-            
-            // Actual Backend Call:
-            // const response = await axios.post('http://localhost:8000/reports/upload', formData);
-            // setReports((prev) => [...prev, { id: Date.now().toString(), name: file.name, url: response.data.file_url }]);
+            const response = await api.post('/reports/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            const uploadedUrl = response.data.url || URL.createObjectURL(file);
+            setReports((prev) => [...prev, { id: response.data.report_id?.toString() || Date.now().toString(), name: file.name, url: uploadedUrl }]);
+            setSelectedPdf(uploadedUrl);
+            toast.success(response.data.message || 'Medical report securely uploaded to cloud storage.');
         } catch (error) {
+            console.error('Upload failed:', error);
             toast.error('Upload failed. Please try again.');
+        } finally {
             setIsUploading(false);
         }
-    }, []);
+    }, [selectedDocType, token, user]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -68,6 +76,58 @@ export default function UnifiedProfilePage() {
 
     const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
         setNumPages(numPages);
+    };
+
+    useEffect(() => {
+        if (!token) return;
+
+        const refreshUser = async () => {
+            try {
+                const response = await api.get('/auth/me');
+                setAuth(token, response.data);
+            } catch (error) {
+                console.warn('Could not fetch profile details:', error);
+            }
+        };
+
+        refreshUser();
+    }, [token, setAuth]);
+
+    const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const photo = event.target.files?.[0];
+        if (!photo) return;
+
+        if (!token) {
+            toast.error('Please log in before updating your profile photo.');
+            return;
+        }
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(photo.type)) {
+            toast.error('Only JPEG, PNG and WEBP images are allowed.');
+            return;
+        }
+
+        setIsAvatarUploading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('avatar', photo);
+
+            const response = await api.post('/auth/avatar', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            if (user) {
+                setAuth(token, { ...user, avatar_url: response.data.avatar_url });
+            }
+            toast.success(response.data.message || 'Profile photo updated successfully.');
+        } catch (error) {
+            console.error('Avatar upload failed:', error);
+            toast.error('Profile photo upload failed. Please try again.');
+        } finally {
+            setIsAvatarUploading(false);
+            event.target.value = '';
+        }
     };
 
     return (
@@ -103,22 +163,58 @@ export default function UnifiedProfilePage() {
                             
                             {/* Left Col: Upload & Reports */}
                             <div className="lg:col-span-1 space-y-6">
-                                {/* Drag & Drop Upload Zone */}
-                                <Card className="border-dashed border-2 bg-card/50 hover:bg-muted/50 transition-colors">
-                                    <div
-                                        {...getRootProps()}
-                                        className={`p-8 flex flex-col items-center justify-center cursor-pointer ${isDragActive ? 'border-primary bg-primary/5' : ''}`}
-                                    >
-                                        <input {...getInputProps()} />
-                                        <UploadCloud className={`w-12 h-12 mb-4 ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                                        <p className="text-sm font-medium text-foreground text-center">
-                                            {isUploading ? 'Encrypting...' : 'Drag & drop medical PDFs here'}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground mt-2 text-center">or click to select</p>
-                                    </div>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Profile Photo</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-20 w-20">
+                                                <AvatarImage src={user?.avatar_url ?? '/placeholder-user.jpg'} alt={user?.full_name ?? 'User'} />
+                                                <AvatarFallback>{user?.full_name?.[0] ?? 'U'}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="space-y-2">
+                                                <p className="text-sm text-muted-foreground">Upload a secure profile picture for your account.</p>
+                                                <label htmlFor="avatar-upload" className="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                                                    {isAvatarUploading ? 'Uploading...' : 'Update Photo'}
+                                                </label>
+                                                <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarFileChange} className="sr-only" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
                                 </Card>
 
-                                {/* Uploaded Reports List */}
+                                <Card className="border-dashed border-2 bg-card/50 hover:bg-muted/50 transition-colors">
+                                    <div className="p-4 space-y-4">
+                                        <div>
+                                            <label htmlFor="documentType" className="block text-sm font-medium text-slate-700">Report Type</label>
+                                            <select
+                                                id="documentType"
+                                                value={selectedDocType}
+                                                onChange={(event) => setSelectedDocType(event.target.value)}
+                                                className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                            >
+                                                <option>General Report</option>
+                                                <option>Blood Test</option>
+                                                <option>X-Ray</option>
+                                                <option>Prescription</option>
+                                                <option>Referral Letter</option>
+                                            </select>
+                                        </div>
+
+                                        <div
+                                            {...getRootProps()}
+                                            className={`p-8 flex flex-col items-center justify-center cursor-pointer rounded-2xl border border-dashed ${isDragActive ? 'border-primary bg-primary/5' : 'border-slate-300 bg-white'} transition-colors`}
+                                        >
+                                            <input {...getInputProps()} />
+                                            <UploadCloud className={`w-12 h-12 mb-4 ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                                            <p className="text-sm font-medium text-foreground text-center">
+                                                {isUploading ? 'Encrypting...' : 'Drag & drop medical PDFs here'}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-2 text-center">or click to select</p>
+                                        </div>
+                                    </div>
+                                </Card>
                                 <Card>
                                     <CardHeader className="pb-3">
                                         <CardTitle className="text-lg">Patient Vault</CardTitle>
@@ -235,34 +331,7 @@ export default function UnifiedProfilePage() {
                         </DialogHeader>
                         <div className="flex-1 overflow-auto bg-slate-800/5 flex justify-center p-4">
                             {selectedPdf ? (
-                                <Document
-                                    file={selectedPdf}
-                                    onLoadSuccess={onDocumentLoadSuccess}
-                                    className="max-w-full"
-                                    loading={
-                                        <div className="flex items-center justify-center h-64 text-muted-foreground">
-                                            Loading document securely...
-                                        </div>
-                                    }
-                                    error={
-                                        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground bg-white p-8 rounded-xl border shadow-sm">
-                                            <FileText className="w-12 h-12 text-slate-300 mb-4" />
-                                            <p>Unable to load PDF.</p>
-                                            <p className="text-xs mt-1">If this is a local blob URL or dummy file, it may not exist.</p>
-                                        </div>
-                                    }
-                                >
-                                    {Array.from(new Array(numPages || 0), (el, index) => (
-                                        <Page 
-                                            key={`page_${index + 1}`} 
-                                            pageNumber={index + 1} 
-                                            className="mb-4 shadow-lg rounded-sm overflow-hidden border border-border"
-                                            width={Math.min(window.innerWidth * 0.8, 800)}
-                                            renderTextLayer={false}
-                                            renderAnnotationLayer={false}
-                                        />
-                                    ))}
-                                </Document>
+                                <PDFViewer file={selectedPdf} onLoadSuccess={onDocumentLoadSuccess} numPages={numPages} />
                             ) : null}
                         </div>
                     </DialogContent>

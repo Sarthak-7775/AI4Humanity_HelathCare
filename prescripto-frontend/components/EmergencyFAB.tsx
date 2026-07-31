@@ -4,31 +4,53 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, MapPin, Phone, Car, X, Loader2 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import api from '@/lib/api';
 
 export default function EmergencyFAB() {
     const { isEmergencyModalOpen, toggleEmergencyModal } = useStore();
     const [isLocating, setIsLocating] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [routeDetails, setRouteDetails] = useState<{ hospital_name: string; distance_km: number; estimated_time_mins: number; uber_deep_link?: string; google_maps_link?: string } | null>(null);
 
-    // Trigger Geolocation when modal opens
     useEffect(() => {
-        if (isEmergencyModalOpen && !userLocation) {
+        if (!isEmergencyModalOpen) {
+            return;
+        }
+
+        if (!userLocation) {
             setIsLocating(true);
             if ('geolocation' in navigator) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        setUserLocation({
+                    async (position) => {
+                        const nextLocation = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
-                        });
-                        // Simulate FastAPI route prediction delay
-                        setTimeout(() => setIsLocating(false), 1500);
+                        };
+                        setUserLocation(nextLocation);
+
+                        try {
+                            const response = await api.post('/emergency/find-fastest-hospital', null, {
+                                params: {
+                                    user_latitude: nextLocation.lat,
+                                    user_longitude: nextLocation.lng,
+                                    budget_tier: 'Medium',
+                                    medical_condition: 'General',
+                                },
+                            });
+                            setRouteDetails(response.data);
+                        } catch (error) {
+                            console.error('Emergency route lookup failed:', error);
+                        } finally {
+                            setIsLocating(false);
+                        }
                     },
                     (error) => {
                         console.error('Error fetching location:', error);
                         setIsLocating(false);
                     }
                 );
+            } else {
+                setIsLocating(false);
             }
         }
     }, [isEmergencyModalOpen, userLocation]);
@@ -86,17 +108,29 @@ export default function EmergencyFAB() {
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-center space-x-2 text-sm text-green-600 font-medium">
                                             <MapPin size={16} />
-                                            <span>Location acquired. Nearest hospital found.</span>
+                                            <span>{routeDetails ? `Nearest match: ${routeDetails.hospital_name}` : 'Location acquired. Nearest hospital found.'}</span>
                                         </div>
 
-                                        {/* Two Massive Action Buttons */}
-                                        <button className="flex w-full items-center justify-center space-x-3 rounded-xl bg-destructive px-4 py-4 text-destructive-foreground font-semibold shadow-lg hover:opacity-90 transition-opacity">
-                                            <Phone size={20} />
-                                            <span>Book In-App Ambulance</span>
-                                        </button>
+                                        {routeDetails && (
+                                            <p className="text-center text-sm text-muted-foreground">
+                                                Estimated arrival in {routeDetails.estimated_time_mins} mins • {routeDetails.distance_km.toFixed(1)} km away
+                                            </p>
+                                        )}
 
                                         <a
-                                            href={`uber://?client_id=YOUR_CLIENT_ID&action=setPickup&dropoff[latitude]=28.6139&dropoff[longitude]=77.2090`}
+                                            href={routeDetails?.google_maps_link || 'https://www.google.com/maps'}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex w-full items-center justify-center space-x-3 rounded-xl bg-destructive px-4 py-4 text-destructive-foreground font-semibold shadow-lg hover:opacity-90 transition-opacity"
+                                        >
+                                            <Phone size={20} />
+                                            <span>Book In-App Ambulance</span>
+                                        </a>
+
+                                        <a
+                                            href={routeDetails?.uber_deep_link || 'https://m.uber.com'}
+                                            target="_blank"
+                                            rel="noreferrer"
                                             className="flex w-full items-center justify-center space-x-3 rounded-xl bg-foreground px-4 py-4 text-background font-semibold shadow-lg hover:opacity-90 transition-opacity"
                                         >
                                             <Car size={20} />

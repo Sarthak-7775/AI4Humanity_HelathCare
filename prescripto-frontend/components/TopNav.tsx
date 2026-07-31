@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HeartPulse, User, Calendar, Users, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/store/useAuth";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -23,6 +24,8 @@ const navLinks = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuth((state) => state.user);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,30 +59,24 @@ export function TopNav() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer border hover:opacity-80 transition-opacity">
-                <AvatarImage src="/placeholder-user.jpg" alt="@user" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={user?.avatar_url ?? "/placeholder-user.jpg"} alt={user?.full_name ?? "User"} />
+                <AvatarFallback>{user?.full_name?.[0] ?? "U"}</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>My Profile</span>
-                </Link>
+              <DropdownMenuItem onSelect={() => router.push('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>My Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/appointments" className="cursor-pointer">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span>My Appointments</span>
-                </Link>
+              <DropdownMenuItem onSelect={() => router.push('/appointments')}>
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>My Appointments</span>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile?tab=family" className="cursor-pointer">
-                  <Users className="mr-2 h-4 w-4" />
-                  <span>Family Vault</span>
-                </Link>
+              <DropdownMenuItem onSelect={() => router.push('/profile?tab=family')}>
+                <Users className="mr-2 h-4 w-4" />
+                <span>Family Vault</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">

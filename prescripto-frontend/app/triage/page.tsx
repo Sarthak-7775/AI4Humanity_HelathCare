@@ -6,8 +6,8 @@ import { useChatStore } from '@/lib/store';
 import ChatBubble from '@/components/chat/ChatBubble';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, ShieldAlert } from 'lucide-react';
-import axios from 'axios';
 import { motion } from 'framer-motion';
+import api from '@/lib/api';
 
 export default function TriagePage() {
     const { messages, isTyping, addMessage, setTyping } = useChatStore();
@@ -22,14 +22,15 @@ export default function TriagePage() {
 
         try {
             // Direct connection to your FastAPI RAG Engine
-            const response = await axios.post('http://localhost:8000/chatbot/triage', {
-                symptoms: input
+            const response = await api.post('/chatbot/triage', {
+                patient_id: 1,
+                symptoms_input: input,
             });
 
             addMessage({
                 role: 'bot',
                 content: `Based on your symptoms (Urgency: ${response.data.urgency_level}), here is my assessment: ${response.data.triage_advice}`,
-                recommended_tests: response.data.recommended_tests
+                recommended_tests: response.data.recommended_tests || []
             });
         } catch (error) {
             addMessage({

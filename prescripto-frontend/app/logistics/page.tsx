@@ -23,27 +23,17 @@ export default function LogisticsDashboard() {
 
     // WebSocket Connection for Phase 6 Telemetry
     useEffect(() => {
-        // Assuming FastAPI is running on port 8000
-        // Use try-catch or silent fail for demonstration
         try {
-            const ws = new WebSocket('ws://localhost:8000/ws/telemetry');
+            const ws = new WebSocket('ws://localhost:8000/ws/ambulance-tracker/demo-ambulance');
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                if (data.type === 'ambulance_location') {
-                    setAmbulanceCoords({ lat: data.lat, lng: data.lon });
-                } else if (data.type === 'bed_update') {
-                    setBedAvailability(data.percentage);
+                if (data.latitude && data.longitude) {
+                    setAmbulanceCoords({ lat: data.latitude, lng: data.longitude });
                 }
             };
-            
-            // For Demo: Simulate ambulance movement
+
             const interval = setInterval(() => {
-                setAmbulanceCoords(prev => ({
-                    lat: prev.lat + (Math.random() - 0.5) * 0.005,
-                    lng: prev.lng + (Math.random() - 0.5) * 0.005
-                }));
-                // Simulate bed changes
                 setBedAvailability(prev => {
                     const newAvail = prev + Math.floor((Math.random() - 0.5) * 5);
                     return Math.min(Math.max(newAvail, 10), 100);
