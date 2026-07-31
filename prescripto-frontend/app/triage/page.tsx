@@ -7,6 +7,7 @@ import ChatBubble from '@/components/chat/ChatBubble';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, ShieldAlert } from 'lucide-react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 export default function TriagePage() {
     const { messages, isTyping, addMessage, setTyping } = useChatStore();
@@ -41,22 +42,22 @@ export default function TriagePage() {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-slate-50">
+        <div className="flex flex-col h-[calc(100vh-4rem)] bg-background">
             {/* Clinical Header */}
-            <header className="bg-white p-4 shadow-sm border-b border-slate-200 flex items-center gap-3">
-                <div className="bg-blue-100 p-2 rounded-full">
-                    <ShieldAlert className="w-6 h-6 text-blue-600" />
+            <header className="bg-card p-4 shadow-sm border-b border-border flex items-center gap-3 shrink-0">
+                <div className="bg-primary/10 p-2 rounded-full">
+                    <ShieldAlert className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">AI Medical Triage</h1>
-                    <p className="text-xs text-slate-500">Secure & Confidential RAG Analysis</p>
+                    <h1 className="text-lg font-bold text-foreground">AI Medical Triage</h1>
+                    <p className="text-xs text-muted-foreground">Secure & Confidential RAG Analysis</p>
                 </div>
             </header>
 
             {/* Chat Stream */}
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:max-w-4xl lg:mx-auto w-full">
                 {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                         <ShieldAlert className="w-12 h-12 mb-4 opacity-50" />
                         <p>Describe your symptoms to begin triage.</p>
                     </div>
@@ -68,21 +69,25 @@ export default function TriagePage() {
 
                 {/* Typing Indicator */}
                 {isTyping && (
-                    <div className="flex justify-start mb-4">
-                        <div className="bg-white border border-slate-200 p-4 rounded-2xl rounded-bl-none flex items-center gap-3 shadow-sm text-slate-500">
-                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-start mb-4"
+                    >
+                        <div className="bg-card border border-border p-4 rounded-2xl rounded-bl-none flex items-center gap-3 shadow-sm text-muted-foreground">
+                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
                             <span className="text-sm font-medium">Cross-referencing medical guidelines...</span>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
             </main>
 
             {/* Input Area */}
-            <footer className="p-4 bg-white border-t border-slate-200">
+            <footer className="p-4 bg-card border-t border-border shrink-0">
                 <div className="max-w-4xl mx-auto flex gap-3">
                     <input
                         type="text"
-                        className="flex-1 border border-slate-300 rounded-full px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                        className="flex-1 border border-input bg-background rounded-full px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary shadow-sm text-foreground"
                         placeholder="E.g., I have a crushing chest pain and feel dizzy..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -90,9 +95,9 @@ export default function TriagePage() {
                     />
                     <Button
                         onClick={handleSend}
-                        className="rounded-full w-12 h-12 p-0 flex items-center justify-center bg-blue-600 hover:bg-blue-700 shadow-md transition-colors"
+                        className="rounded-full w-12 h-12 p-0 flex items-center justify-center bg-primary hover:bg-primary/90 shadow-md transition-colors shrink-0"
                     >
-                        <Send className="w-5 h-5 text-white" />
+                        <Send className="w-5 h-5 text-primary-foreground" />
                     </Button>
                 </div>
             </footer>

@@ -1,0 +1,17 @@
+{
+  "name": "Prescripto Healthcare",
+  "short_name": "Prescripto",
+  "description": "Enterprise healthcare platform and AI triage",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ]
+}

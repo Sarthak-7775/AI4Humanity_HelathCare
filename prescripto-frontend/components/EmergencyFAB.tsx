@@ -38,7 +38,7 @@ export default function EmergencyFAB() {
             {/* Persistent Floating Action Button */}
             <button
                 onClick={toggleEmergencyModal}
-                className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-red-500 text-white shadow-2xl transition-transform hover:scale-105 active:scale-95"
+                className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-2xl transition-transform hover:scale-105 active:scale-95"
                 aria-label="Emergency Action"
             >
                 <AlertCircle size={32} />
@@ -57,30 +57,30 @@ export default function EmergencyFAB() {
                             initial={{ scale: 0.9, y: 20, opacity: 0 }}
                             animate={{ scale: 1, y: 0, opacity: 1 }}
                             exit={{ scale: 0.9, y: 20, opacity: 0 }}
-                            className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white p-6 shadow-2xl"
+                            className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-background p-6 shadow-2xl"
                         >
                             <button
                                 onClick={toggleEmergencyModal}
-                                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+                                className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
                             >
                                 <X size={24} />
                             </button>
 
                             <div className="text-center">
-                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-500">
+                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                                     <AlertCircle size={32} />
                                 </div>
-                                <h2 className="text-2xl font-bold text-slate-900">Emergency Protocol</h2>
-                                <p className="mt-2 text-slate-500">
+                                <h2 className="text-2xl font-bold text-foreground">Emergency Protocol</h2>
+                                <p className="mt-2 text-muted-foreground">
                                     We are locating you and finding the fastest route to the nearest available hospital.
                                 </p>
                             </div>
 
                             <div className="mt-8 space-y-4">
                                 {isLocating ? (
-                                    <div className="flex h-32 flex-col items-center justify-center space-y-3 rounded-xl bg-slate-50 border border-slate-100">
-                                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                                        <p className="text-sm text-slate-500">Pinging FastAPI routing engine...</p>
+                                    <div className="flex h-32 flex-col items-center justify-center space-y-3 rounded-xl bg-muted/50 border border-border">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        <p className="text-sm text-muted-foreground">Pinging routing engine...</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -90,14 +90,14 @@ export default function EmergencyFAB() {
                                         </div>
 
                                         {/* Two Massive Action Buttons */}
-                                        <button className="flex w-full items-center justify-center space-x-3 rounded-xl bg-red-500 px-4 py-4 text-white font-semibold shadow-lg hover:bg-red-600 transition-colors">
+                                        <button className="flex w-full items-center justify-center space-x-3 rounded-xl bg-destructive px-4 py-4 text-destructive-foreground font-semibold shadow-lg hover:opacity-90 transition-opacity">
                                             <Phone size={20} />
                                             <span>Book In-App Ambulance</span>
                                         </button>
 
                                         <a
                                             href={`uber://?client_id=YOUR_CLIENT_ID&action=setPickup&dropoff[latitude]=28.6139&dropoff[longitude]=77.2090`}
-                                            className="flex w-full items-center justify-center space-x-3 rounded-xl bg-slate-900 px-4 py-4 text-white font-semibold shadow-lg hover:bg-slate-800 transition-colors"
+                                            className="flex w-full items-center justify-center space-x-3 rounded-xl bg-foreground px-4 py-4 text-background font-semibold shadow-lg hover:opacity-90 transition-opacity"
                                         >
                                             <Car size={20} />
                                             <span>Open in Uber / Ola</span>
