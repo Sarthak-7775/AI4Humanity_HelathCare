@@ -56,6 +56,12 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/profile')}
+            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Profile
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer border hover:opacity-80 transition-opacity">
