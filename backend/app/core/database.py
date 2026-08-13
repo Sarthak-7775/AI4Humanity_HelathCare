@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Load environment variables from .env file
@@ -25,6 +25,22 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for the SQLAlchemy models
 Base = declarative_base()
+
+
+def ensure_schema_compatibility() -> None:
+    """Add columns expected by newer code when the database already exists."""
+    with engine.begin() as conn:
+        inspector = inspect(conn)
+        table_names = set(inspector.get_table_names())
+
+        if "users" not in table_names:
+            Base.metadata.create_all(bind=conn)
+            return
+
+        user_columns = {col["name"] for col in inspector.get_columns("users")}
+        if "avatar_url" not in user_columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR"))
+
 
 # Dependency to get the DB session per request
 def get_db():

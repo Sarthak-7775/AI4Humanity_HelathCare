@@ -13,11 +13,13 @@ from app.api import (
     routes_telemetry,
     routes_users,
 )
-from app.core.database import Base, engine
+from app.core.database import Base, ensure_schema_compatibility, engine
 from app.services.bed_simulation import simulate_bed_fluctuations
 
-# Automatically create database tables in Neon DB
+# Automatically create database tables in Neon DB, while preserving
+# compatibility with existing databases that are missing newer columns.
 Base.metadata.create_all(bind=engine)
+ensure_schema_compatibility()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
