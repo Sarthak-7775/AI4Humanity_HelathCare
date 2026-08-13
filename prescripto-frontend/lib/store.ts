@@ -22,6 +22,9 @@ interface ChatMessage {
     role: 'user' | 'bot';
     content: string;
     recommended_tests?: string[];
+    urgency_level?: string;
+    suggested_department?: string;
+    probable_causes?: string[];
 }
 
 interface ChatStore {
