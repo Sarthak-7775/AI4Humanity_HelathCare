@@ -18,39 +18,43 @@ const SPECIALITIES = [
   { icon: Heart, label: "Cardiologist" },
 ];
 
-const TOP_DOCTORS = [
+const HOSPITALS_NEAR_YOU = [
   {
-    name: "Dr. Sarah Jenkins",
-    speciality: "General Physician",
-    rating: 4.9,
+    name: "AIIMS Delhi",
+    type: "government",
+    speciality: "Cardiology, Neurology, General Medicine",
     distance: "1.2 km",
-    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200&auto=format&fit=crop",
     available: true,
+    bookingUrl: "https://ors.gov.in/",
   },
   {
-    name: "Dr. Marcus Chen",
-    speciality: "Cardiologist",
-    rating: 4.8,
-    distance: "2.5 km",
-    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=800&auto=format&fit=crop",
+    name: "Apollo Hospital",
+    type: "private",
+    speciality: "Cardiology, Orthopaedics, Oncology",
+    distance: "2.4 km",
+    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=1200&auto=format&fit=crop",
     available: true,
+    bookingUrl: "https://www.apollohospitals.com/",
   },
   {
-    name: "Dr. Emily Roberts",
-    speciality: "Dermatologist",
-    rating: 4.7,
-    distance: "3.0 km",
-    image: "https://images.unsplash.com/photo-1594824436998-d463d11b15aa?q=80&w=800&auto=format&fit=crop",
-    available: false,
+    name: "Fortis Memorial Research Institute",
+    type: "private",
+    speciality: "Neurology, Oncology, General Surgery",
+    distance: "3.1 km",
+    image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?q=80&w=1200&auto=format&fit=crop",
+    available: true,
+    bookingUrl: "https://www.fortishealthcare.com/",
   },
   {
-    name: "Dr. James Wilson",
-    speciality: "Neurologist",
-    rating: 4.9,
-    distance: "4.1 km",
-    image: "https://images.unsplash.com/photo-1537368910025-7028a428c232?q=80&w=800&auto=format&fit=crop",
+    name: "Safdarjung Hospital",
+    type: "government",
+    speciality: "General Medicine, Pediatrics, Trauma",
+    distance: "4.8 km",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1200&auto=format&fit=crop",
     available: true,
-  }
+    bookingUrl: "https://ors.gov.in/",
+  },
 ];
 
 export default function Home() {
@@ -207,52 +211,60 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Top Doctors / Nearest Hospitals Grid */}
+      {/* Hospitals Near You Section */}
       <section className="py-20 bg-slate-50 dark:bg-slate-900/50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-end mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-foreground">Top Doctors Near You</h2>
-              <p className="text-muted-foreground mt-2">Highly rated professionals based on your location and preferences.</p>
+              <h2 className="text-3xl font-bold text-foreground">Hospitals Near You</h2>
+              <p className="text-muted-foreground mt-2">Quality care options across government and private institutions near your location.</p>
             </div>
             <Button variant="outline" asChild className="hidden md:flex">
-              <Link href="/all-doctors">View All Doctors</Link>
+              <Link href="/all-doctors">View All Hospitals</Link>
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TOP_DOCTORS.map((doc, i) => (
+            {HOSPITALS_NEAR_YOU.map((hospital, i) => (
               <Card key={i} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
-                <div className="relative h-60 w-full overflow-hidden bg-muted">
+                <div className="relative h-52 w-full overflow-hidden bg-muted">
                   <img 
-                    src={doc.image} 
-                    alt={doc.name} 
+                    src={hospital.image} 
+                    alt={hospital.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {doc.available && (
-                    <Badge className="absolute top-4 right-4 bg-green-500 hover:bg-green-600 text-white border-0 shadow-sm">
-                      <div className="w-2 h-2 rounded-full bg-white mr-1.5 animate-pulse" />
-                      Available
-                    </Badge>
-                  )}
+                  <Badge className={`absolute top-4 right-4 border-0 shadow-sm ${hospital.type === "government" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"} text-white`}>
+                    {hospital.type === "government" ? "Government" : "Private"}
+                  </Badge>
                 </div>
                 <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg text-foreground line-clamp-1">{doc.name}</h3>
-                    <div className="flex items-center text-amber-500 text-sm font-medium">
-                      <Star className="w-4 h-4 fill-current mr-1" />
-                      {doc.rating}
+                  <div className="mb-2">
+                    <h3 className="font-bold text-lg text-foreground line-clamp-1">{hospital.name}</h3>
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">{hospital.speciality}</p>
+                  
+                  <div className="space-y-3 pt-4 border-t border-border text-sm text-slate-600">
+                    <div className="flex items-center">
+                      <MapPin className="w-4 h-4 mr-2 text-slate-500" />
+                      {hospital.distance} away
+                    </div>
+                    <div className="flex items-center text-slate-500">
+                      <Star className="w-4 h-4 mr-2 fill-amber-400 text-amber-400" />
+                      {hospital.type === "government" ? "Public care access" : "Premium care access"}
                     </div>
                   </div>
-                  <p className="text-muted-foreground text-sm mb-4">{doc.speciality}</p>
-                  
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                    <div className="flex items-center text-sm text-slate-500">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {doc.distance}
-                    </div>
+
+                  <div className="mt-5 flex items-center justify-between gap-2">
+                    <a
+                      href={hospital.bookingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary font-medium underline underline-offset-2"
+                    >
+                      {hospital.type === "government" ? "ORS Portal" : "Hospital Website"}
+                    </a>
                     <Button variant="secondary" size="sm" asChild>
-                      <Link href={`/appointments/book?doctor=${doc.name}`}>Book Now</Link>
+                      <a href={hospital.bookingUrl} target="_blank" rel="noreferrer">Book Now</a>
                     </Button>
                   </div>
                 </CardContent>
@@ -262,7 +274,7 @@ export default function Home() {
           
           <div className="mt-10 text-center md:hidden">
             <Button variant="outline" asChild size="lg" className="w-full">
-              <Link href="/all-doctors">View All Doctors</Link>
+              <Link href="/all-doctors">View All Hospitals</Link>
             </Button>
           </div>
         </div>
