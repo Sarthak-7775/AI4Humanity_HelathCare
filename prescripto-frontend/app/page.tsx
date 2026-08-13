@@ -116,7 +116,7 @@ export default function Home() {
     if (location) params.set("location", location.trim());
     if (searchType && searchType !== "all") params.set("type", searchType);
     const queryString = params.toString();
-    router.push(`/all-doctors${queryString ? `?${queryString}` : ""}`);
+    router.push(`/all-hospitals${queryString ? `?${queryString}` : ""}`);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -246,7 +246,7 @@ export default function Home() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 max-w-5xl mx-auto">
             {SPECIALITIES.map((spec, i) => (
-              <Link href={`/all-doctors?speciality=${spec.label}`} key={i}>
+              <Link href={`/all-hospitals?speciality=${spec.label}`} key={i}>
                 <div className="flex flex-col items-center p-6 bg-card rounded-2xl shadow-sm border border-border/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     <spec.icon className="w-8 h-8 text-primary group-hover:text-primary-foreground transition-colors" />
@@ -268,7 +268,7 @@ export default function Home() {
               <p className="text-muted-foreground mt-2">Quality care options across government and private institutions near your location.</p>
             </div>
             <Button variant="outline" asChild className="hidden md:flex">
-              <Link href="/all-doctors">View All Hospitals</Link>
+              <Link href="/all-hospitals">View All Hospitals</Link>
             </Button>
           </div>
 

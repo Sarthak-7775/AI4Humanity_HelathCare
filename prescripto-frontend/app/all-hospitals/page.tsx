@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Building2, ExternalLink, SlidersHorizontal, ChevronDown, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ const HOSPITALS = [
     location: "Ansari Nagar, New Delhi",
     bookingUrl: "https://ors.gov.in/",
     availableBeds: 32,
+    lat: 28.5672,
+    lng: 77.2100,
   },
   {
     id: 2,
@@ -39,6 +41,8 @@ const HOSPITALS = [
     location: "Saket, New Delhi",
     bookingUrl: "https://www.apollohospitals.com/",
     availableBeds: 18,
+    lat: 28.5284,
+    lng: 77.2114,
   },
   {
     id: 3,
@@ -50,6 +54,8 @@ const HOSPITALS = [
     location: "Gurugram, Haryana",
     bookingUrl: "https://www.fortishealthcare.com/",
     availableBeds: 14,
+    lat: 28.4552,
+    lng: 77.0722,
   },
   {
     id: 4,
@@ -61,6 +67,8 @@ const HOSPITALS = [
     location: "Safdarjung, New Delhi",
     bookingUrl: "https://ors.gov.in/",
     availableBeds: 28,
+    lat: 28.5694,
+    lng: 77.2066,
   },
   {
     id: 5,
@@ -72,6 +80,8 @@ const HOSPITALS = [
     location: "Patparganj, New Delhi",
     bookingUrl: "https://www.maxhealthcare.in/",
     availableBeds: 22,
+    lat: 28.6340,
+    lng: 77.3039,
   },
   {
     id: 6,
@@ -83,6 +93,8 @@ const HOSPITALS = [
     location: "Jawaharlal Nehru Marg, New Delhi",
     bookingUrl: "https://ors.gov.in/",
     availableBeds: 26,
+    lat: 28.6385,
+    lng: 77.2384,
   },
 ];
 
@@ -95,6 +107,17 @@ const SPECIALITIES = [
   "Oncology",
 ];
 
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
+}
+
 export default function AllHospitalsPage() {
   const searchParams = useSearchParams();
   const requestedTypeParam = searchParams.get("type") ?? "all";
@@ -102,19 +125,53 @@ export default function AllHospitalsPage() {
     requestedTypeParam === "government" || requestedTypeParam === "private" ? requestedTypeParam : "all";
 
   const [hospitalType, setHospitalType] = useState<"all" | "government" | "private">(initialHospitalType);
-  const [distance, setDistance] = useState([10]);
+  const [distance, setDistance] = useState([50]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
   const [sortOrder, setSortOrder] = useState("recommended");
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location", error);
+        }
+      );
+    }
+  }, []);
 
   const parsedLocation = searchParams.get("location") ?? "";
+
+  const computedHospitals = useMemo(() => {
+    return HOSPITALS.map((hospital) => {
+      if (userLocation) {
+        const distKm = getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, hospital.lat, hospital.lng);
+        return {
+          ...hospital,
+          numericDistance: distKm,
+          distance: `${distKm.toFixed(1)} km`,
+        };
+      }
+      return {
+        ...hospital,
+        numericDistance: Number.parseFloat(hospital.distance),
+      };
+    });
+  }, [userLocation]);
 
   const filteredHospitals = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     const normalizedLocation = parsedLocation.trim().toLowerCase();
 
-    const filtered = HOSPITALS.filter((hospital) => {
+    const filtered = computedHospitals.filter((hospital) => {
       const matchesType = hospitalType === "all" || hospital.type === hospitalType;
-      const matchesDistance = Number.parseFloat(hospital.distance) <= distance[0];
+      const matchesDistance = hospital.numericDistance <= distance[0];
       const matchesLocation =
         normalizedLocation.length === 0 ||
         hospital.location.toLowerCase().includes(normalizedLocation) ||
@@ -132,14 +189,14 @@ export default function AllHospitalsPage() {
 
     const sorted = [...filtered];
     if (sortOrder === "distance") {
-      sorted.sort((a, b) => Number.parseFloat(a.distance) - Number.parseFloat(b.distance));
+      sorted.sort((a, b) => a.numericDistance - b.numericDistance);
     }
     if (sortOrder === "beds") {
       sorted.sort((a, b) => b.availableBeds - a.availableBeds);
     }
 
     return sorted;
-  }, [hospitalType, searchQuery, parsedLocation, distance, sortOrder]);
+  }, [computedHospitals, hospitalType, searchQuery, parsedLocation, distance, sortOrder]);
 
   return (
     <div className="container mx-auto px-4 py-8">
