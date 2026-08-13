@@ -126,9 +126,10 @@ export default function Home() {
                 aria-label="Search type"
               >
                 <option value="all">All</option>
-                <option value="doctor">Doctor</option>
-                <option value="speciality">Speciality</option>
                 <option value="hospital">Hospital</option>
+                <option value="government">Government</option>
+                <option value="private">Private</option>
+                <option value="speciality">Speciality</option>
                 <option value="location">Location</option>
               </select>
             </div>

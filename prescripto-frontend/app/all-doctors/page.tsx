@@ -97,13 +97,16 @@ const SPECIALITIES = [
 
 export default function AllHospitalsPage() {
   const searchParams = useSearchParams();
-  const [hospitalType, setHospitalType] = useState<"all" | "government" | "private">("all");
+  const requestedTypeParam = searchParams.get("type") ?? "all";
+  const initialHospitalType: "all" | "government" | "private" =
+    requestedTypeParam === "government" || requestedTypeParam === "private" ? requestedTypeParam : "all";
+
+  const [hospitalType, setHospitalType] = useState<"all" | "government" | "private">(initialHospitalType);
   const [distance, setDistance] = useState([10]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
   const [sortOrder, setSortOrder] = useState("recommended");
 
   const parsedLocation = searchParams.get("location") ?? "";
-  const requestedType = searchParams.get("type") ?? "all";
 
   const filteredHospitals = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -121,16 +124,10 @@ export default function AllHospitalsPage() {
         normalizedQuery.length === 0 ||
         hospital.name.toLowerCase().includes(normalizedQuery) ||
         hospital.speciality.toLowerCase().includes(normalizedQuery) ||
-        hospital.location.toLowerCase().includes(normalizedQuery);
+        hospital.location.toLowerCase().includes(normalizedQuery) ||
+        hospital.type.toLowerCase().includes(normalizedQuery);
 
-      const matchesRequestType =
-        requestedType === "all" ||
-        requestedType === "hospital" ||
-        requestedType === "speciality" ||
-        requestedType === "location" ||
-        requestedType === "doctor";
-
-      return matchesType && matchesDistance && matchesLocation && matchesQuery && matchesRequestType;
+      return matchesType && matchesDistance && matchesLocation && matchesQuery;
     });
 
     const sorted = [...filtered];
@@ -142,7 +139,7 @@ export default function AllHospitalsPage() {
     }
 
     return sorted;
-  }, [hospitalType, searchQuery, parsedLocation, requestedType, distance, sortOrder]);
+  }, [hospitalType, searchQuery, parsedLocation, distance, sortOrder]);
 
   return (
     <div className="container mx-auto px-4 py-8">
