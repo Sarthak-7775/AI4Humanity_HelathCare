@@ -46,8 +46,12 @@ export default function RegisterPage() {
       toast.success("Account created successfully. Please login.");
       router.push("/login");
     } catch (error: any) {
-      const detail = error.response?.data?.detail || "Failed to create account.";
-      toast.error(typeof detail === "string" ? detail : "Failed to create account.");
+      if (!error.response) {
+        toast.error("Network error: Could not reach the backend server. Is it running?");
+      } else {
+        const detail = error.response?.data?.detail || "Failed to create account.";
+        toast.error(typeof detail === "string" ? detail : "Failed to create account.");
+      }
     } finally {
       setIsLoading(false);
     }

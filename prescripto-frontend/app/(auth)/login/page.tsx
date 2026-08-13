@@ -50,8 +50,12 @@ export default function LoginPage() {
       toast.success("Successfully logged in");
       router.push("/dashboard");
     } catch (error: any) {
-      const detail = error.response?.data?.detail || "Failed to login. Please check your credentials.";
-      toast.error(typeof detail === "string" ? detail : "Failed to login. Please check your credentials.");
+      if (!error.response) {
+        toast.error("Network error: Could not reach the backend server. Is it running?");
+      } else {
+        const detail = error.response?.data?.detail || "Failed to login. Please check your credentials.";
+        toast.error(typeof detail === "string" ? detail : "Failed to login. Please check your credentials.");
+      }
     } finally {
       setIsLoading(false);
     }
