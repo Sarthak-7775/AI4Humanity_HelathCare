@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, Star, Stethoscope, Baby, Activity, Brain, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ const HOSPITALS_NEAR_YOU = [
     type: "government",
     speciality: "Cardiology, Neurology, General Medicine",
     distance: "1.2 km",
+    latitude: 28.5676,
+    longitude: 77.2106,
     image: "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200&auto=format&fit=crop",
     available: true,
     bookingUrl: "https://ors.gov.in/",
@@ -33,6 +35,8 @@ const HOSPITALS_NEAR_YOU = [
     type: "private",
     speciality: "Cardiology, Orthopaedics, Oncology",
     distance: "2.4 km",
+    latitude: 28.5193,
+    longitude: 77.2065,
     image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=1200&auto=format&fit=crop",
     available: true,
     bookingUrl: "https://www.apollohospitals.com/",
@@ -42,6 +46,8 @@ const HOSPITALS_NEAR_YOU = [
     type: "private",
     speciality: "Neurology, Oncology, General Surgery",
     distance: "3.1 km",
+    latitude: 28.4224,
+    longitude: 77.0782,
     image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?q=80&w=1200&auto=format&fit=crop",
     available: true,
     bookingUrl: "https://www.fortishealthcare.com/",
@@ -51,17 +57,58 @@ const HOSPITALS_NEAR_YOU = [
     type: "government",
     speciality: "General Medicine, Pediatrics, Trauma",
     distance: "4.8 km",
+    latitude: 28.5653,
+    longitude: 77.2097,
     image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1200&auto=format&fit=crop",
     available: true,
     bookingUrl: "https://ors.gov.in/",
   },
 ];
 
+const getDistanceInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+};
+
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("New Delhi, India");
   const [searchType, setSearchType] = useState("all");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nextLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(nextLocation);
+        setLocation("Current location");
+      },
+      () => {
+        setUserLocation(null);
+        setLocation("New Delhi, India");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  const getHospitalDistance = (hospital: { latitude: number; longitude: number; distance: string }) => {
+    if (!userLocation) return hospital.distance;
+    const computed = getDistanceInKm(userLocation.lat, userLocation.lng, hospital.latitude, hospital.longitude);
+    return `${computed.toFixed(1)} km`;
+  };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -226,51 +273,55 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {HOSPITALS_NEAR_YOU.map((hospital, i) => (
-              <Card key={i} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
-                <div className="relative h-52 w-full overflow-hidden bg-muted">
-                  <img 
-                    src={hospital.image} 
-                    alt={hospital.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <Badge className={`absolute top-4 right-4 border-0 shadow-sm ${hospital.type === "government" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"} text-white`}>
-                    {hospital.type === "government" ? "Government" : "Private"}
-                  </Badge>
-                </div>
-                <CardContent className="p-5">
-                  <div className="mb-2">
-                    <h3 className="font-bold text-lg text-foreground line-clamp-1">{hospital.name}</h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm mb-4">{hospital.speciality}</p>
-                  
-                  <div className="space-y-3 pt-4 border-t border-border text-sm text-slate-600">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-slate-500" />
-                      {hospital.distance} away
-                    </div>
-                    <div className="flex items-center text-slate-500">
-                      <Star className="w-4 h-4 mr-2 fill-amber-400 text-amber-400" />
-                      {hospital.type === "government" ? "Public care access" : "Premium care access"}
-                    </div>
-                  </div>
+            {HOSPITALS_NEAR_YOU.map((hospital, i) => {
+              const distanceLabel = getHospitalDistance(hospital);
 
-                  <div className="mt-5 flex items-center justify-between gap-2">
-                    <a
-                      href={hospital.bookingUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-primary font-medium underline underline-offset-2"
-                    >
-                      {hospital.type === "government" ? "ORS Portal" : "Hospital Website"}
-                    </a>
-                    <Button variant="secondary" size="sm" asChild>
-                      <a href={hospital.bookingUrl} target="_blank" rel="noreferrer">Book Now</a>
-                    </Button>
+              return (
+                <Card key={i} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+                  <div className="relative h-52 w-full overflow-hidden bg-muted">
+                    <img 
+                      src={hospital.image} 
+                      alt={hospital.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <Badge className={`absolute top-4 right-4 border-0 shadow-sm ${hospital.type === "government" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"} text-white`}>
+                      {hospital.type === "government" ? "Government" : "Private"}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-5">
+                    <div className="mb-2">
+                      <h3 className="font-bold text-lg text-foreground line-clamp-1">{hospital.name}</h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-4">{hospital.speciality}</p>
+                    
+                    <div className="space-y-3 pt-4 border-t border-border text-sm text-slate-600">
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-slate-500" />
+                        {distanceLabel} away
+                      </div>
+                      <div className="flex items-center text-slate-500">
+                        <Star className="w-4 h-4 mr-2 fill-amber-400 text-amber-400" />
+                        {hospital.type === "government" ? "Public care access" : "Premium care access"}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between gap-2">
+                      <a
+                        href={hospital.bookingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-primary font-medium underline underline-offset-2"
+                      >
+                        {hospital.type === "government" ? "ORS Portal" : "Hospital Website"}
+                      </a>
+                      <Button variant="secondary" size="sm" asChild>
+                        <a href={hospital.bookingUrl} target="_blank" rel="noreferrer">Book Now</a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
           
           <div className="mt-10 text-center md:hidden">
