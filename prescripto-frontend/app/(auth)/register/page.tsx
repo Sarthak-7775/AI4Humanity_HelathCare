@@ -34,11 +34,20 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await api.post("/auth/register", formData);
+      const payload = {
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        phone_number: formData.phone_number.trim(),
+        role: formData.role,
+      };
+
+      await api.post("/auth/register", payload);
       toast.success("Account created successfully. Please login.");
       router.push("/login");
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to create account.");
+      const detail = error.response?.data?.detail || "Failed to create account.";
+      toast.error(typeof detail === "string" ? detail : "Failed to create account.");
     } finally {
       setIsLoading(false);
     }

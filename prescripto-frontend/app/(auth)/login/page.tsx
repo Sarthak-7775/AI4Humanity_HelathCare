@@ -26,22 +26,23 @@ export default function LoginPage() {
 
     try {
       const formData = new URLSearchParams();
-      formData.append('username', email);
+      formData.append('username', email.trim());
       formData.append('password', password);
+      formData.append('grant_type', 'password');
 
       const response = await api.post("/auth/login", formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
       });
-      
+
       const { access_token } = response.data;
-      
+
       const decoded: any = jwtDecode(access_token);
-      
+
       const user: User = {
         id: decoded.id || 1,
-        email: decoded.sub,
+        email: decoded.sub || email.trim(),
         role: decoded.role || 'patient',
-        full_name: decoded.name || decoded.sub.split('@')[0],
+        full_name: decoded.name || decoded.sub?.split('@')[0] || 'Patient',
         avatar_url: decoded.avatar_url ?? null,
       };
 
@@ -49,7 +50,8 @@ export default function LoginPage() {
       toast.success("Successfully logged in");
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to login. Please check your credentials.");
+      const detail = error.response?.data?.detail || "Failed to login. Please check your credentials.";
+      toast.error(typeof detail === "string" ? detail : "Failed to login. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }

@@ -74,7 +74,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative w-full h-[600px] flex items-center justify-center">
+      <section className="relative w-full h-150 flex items-center justify-center">
         {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -90,6 +90,15 @@ export default function Home() {
           <p className="text-lg md:text-xl text-slate-200 font-medium max-w-2xl mx-auto drop-shadow">
             Experience the future of healthcare. Instant AI triage, seamless booking, and top-tier medical professionals at your fingertips.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Button asChild size="lg" className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-7">
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full border-white bg-white/10 text-white hover:bg-white/20 px-7">
+              <Link href="/register">Register</Link>
+            </Button>
+          </div>
 
           {/* Search Bar Module */}
           <div className="flex items-center bg-white rounded-full p-2 shadow-2xl max-w-2xl mx-auto transition-transform focus-within:scale-105 duration-300">
@@ -120,7 +129,7 @@ export default function Home() {
               </select>
             </div>
 
-            <div className="flex-1 flex items-center px-4 hidden md:flex">
+            <div className="hidden md:flex flex-1 items-center px-4">
               <MapPin className="w-5 h-5 text-slate-400 mr-2" />
               <Input 
                 type="text" 
@@ -258,6 +267,48 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <footer className="bg-slate-950 text-slate-200 mt-0">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">Prescripto</h3>
+              <p className="text-sm text-slate-300 leading-6">
+                A smart healthcare platform focused on AI-powered triage, faster doctor discovery, appointment booking, and connected patient care.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-400 mb-4">Project Details</h4>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li>AI triage and symptom evaluation</li>
+                <li>Doctor and hospital discovery</li>
+                <li>Appointment scheduling and live availability</li>
+                <li>Emergency routing and healthcare coordination</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-400 mb-4">Metadata</h4>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li>Version: 1.0</li>
+                <li>Platform: Next.js + FastAPI</li>
+                <li>Updated: August 2026</li>
+                <li>Healthcare Area: Digital Care & Patient Access</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between text-sm text-slate-400 gap-3">
+            <p>© 2026 Prescripto. All rights reserved.</p>
+            <div className="flex items-center gap-5">
+              <Link href="/login" className="hover:text-white transition-colors">Login</Link>
+              <Link href="/register" className="hover:text-white transition-colors">Register</Link>
+              <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
