@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, MapPin, Star, Stethoscope, Baby, Activity, Brain, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +54,23 @@ const TOP_DOCTORS = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState("New Delhi, India");
+  const [searchType, setSearchType] = useState("all");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("q", searchQuery.trim());
+    if (location) params.set("location", location.trim());
+    if (searchType && searchType !== "all") params.set("type", searchType);
+    const queryString = params.toString();
+    router.push(`/all-doctors${queryString ? `?${queryString}` : ""}`);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
+  };
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -76,22 +97,80 @@ export default function Home() {
               <Search className="w-5 h-5 text-slate-400 mr-2" />
               <Input 
                 type="text" 
-                placeholder="Search doctors, specialities, symptoms..." 
+                placeholder="Search doctors, specialities, hospitals..." 
                 className="border-0 shadow-none focus-visible:ring-0 text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={onKeyDown}
               />
             </div>
+
+            <div className="flex items-center px-3 border-r border-slate-200">
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="bg-transparent outline-none text-sm text-slate-600"
+                aria-label="Search type"
+              >
+                <option value="all">All</option>
+                <option value="doctor">Doctor</option>
+                <option value="speciality">Speciality</option>
+                <option value="hospital">Hospital</option>
+                <option value="location">Location</option>
+              </select>
+            </div>
+
             <div className="flex-1 flex items-center px-4 hidden md:flex">
               <MapPin className="w-5 h-5 text-slate-400 mr-2" />
               <Input 
                 type="text" 
                 placeholder="Current Location" 
                 className="border-0 shadow-none focus-visible:ring-0 text-base"
-                defaultValue="New Delhi, India"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onKeyDown={onKeyDown}
               />
             </div>
-            <Button size="lg" className="rounded-full px-8 h-12 text-base font-semibold shrink-0">
+
+            <Button size="lg" className="rounded-full px-8 h-12 text-base font-semibold shrink-0" onClick={handleSearch}>
               Search
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Prescripto Section */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-foreground">Why Prescripto</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Precision-first healthcare: faster triage, verified clinicians, and actionable reports.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="p-6 bg-card rounded-2xl shadow-sm border border-border/50">
+              <div className="flex items-center mb-4">
+                <Brain className="w-6 h-6 text-primary mr-3" />
+                <h3 className="font-semibold">AI-Driven Triage</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Fast, evidence-backed symptom assessment that prioritizes care and reduces wait times.</p>
+            </div>
+
+            <div className="p-6 bg-card rounded-2xl shadow-sm border border-border/50">
+              <div className="flex items-center mb-4">
+                <Star className="w-6 h-6 text-primary mr-3" />
+                <h3 className="font-semibold">Verified Providers</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Rigorously validated doctors and hospitals with transparent ratings and real-time availability.</p>
+            </div>
+
+            <div className="p-6 bg-card rounded-2xl shadow-sm border border-border/50">
+              <div className="flex items-center mb-4">
+                <Heart className="w-6 h-6 text-primary mr-3" />
+                <h3 className="font-semibold">Comprehensive Reports</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Concise, shareable clinical reports that support decisions and continuity of care.</p>
+            </div>
           </div>
         </div>
       </section>
