@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Building2, ExternalLink, SlidersHorizontal, ChevronDown, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,14 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
 }
 
 export default function AllHospitalsPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading hospitals...</div>}>
+      <AllHospitalsPageContent />
+    </Suspense>
+  );
+}
+
+function AllHospitalsPageContent() {
   const searchParams = useSearchParams();
   const requestedTypeParam = searchParams.get("type") ?? "all";
   const initialHospitalType: "all" | "government" | "private" =

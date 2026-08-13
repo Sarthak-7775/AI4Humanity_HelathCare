@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AppointmentBookRedirectPage() {
+  return (
+    <Suspense fallback={null}>
+      <AppointmentBookRedirectContent />
+    </Suspense>
+  );
+}
+
+function AppointmentBookRedirectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

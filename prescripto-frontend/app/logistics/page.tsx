@@ -1,10 +1,11 @@
 // app/logistics/page.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { Activity } from 'lucide-react';
+import { Activity, MapPinned } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Dynamically import Leaflet Map to prevent SSR issues
@@ -18,8 +19,45 @@ const LiveMap = dynamic(() => import('@/components/maps/LiveMap'), {
 });
 
 export default function LogisticsDashboard() {
-    const [ambulanceCoords, setAmbulanceCoords] = useState({ lat: 28.6139, lng: 77.2090 });
+    return (
+        <Suspense fallback={<div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-background">Loading logistics dashboard...</div>}>
+            <LogisticsDashboardContent />
+        </Suspense>
+    );
+}
+
+function LogisticsDashboardContent() {
+    const searchParams = useSearchParams();
+    const selectedDestination = useMemo(() => {
+        const rawLat = searchParams.get('lat');
+        const rawLng = searchParams.get('lng');
+        const hospitalName = searchParams.get('hospital') ?? 'Selected Hospital';
+
+        if (!rawLat || !rawLng) {
+            return {
+                hospitalName,
+                lat: 28.6139,
+                lng: 77.2090,
+                pickupLat: 28.6139,
+                pickupLng: 77.2090,
+            };
+        }
+
+        return {
+            hospitalName,
+            lat: Number(rawLat),
+            lng: Number(rawLng),
+            pickupLat: Number(searchParams.get('pickupLat') ?? rawLat),
+            pickupLng: Number(searchParams.get('pickupLng') ?? rawLng),
+        };
+    }, [searchParams]);
+
+    const [ambulanceCoords, setAmbulanceCoords] = useState({ lat: selectedDestination.lat, lng: selectedDestination.lng });
     const [bedAvailability, setBedAvailability] = useState(85); // Percentage of total beds available
+
+    useEffect(() => {
+        setAmbulanceCoords({ lat: selectedDestination.lat, lng: selectedDestination.lng });
+    }, [selectedDestination]);
 
     // WebSocket Connection for Phase 6 Telemetry
     useEffect(() => {
@@ -78,6 +116,24 @@ export default function LogisticsDashboard() {
                     <Activity className="w-5 h-5 text-primary" />
                     Live Hospital Metrics
                 </h2>
+
+                <Card className="bg-background shadow-inner mb-4">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-muted-foreground font-medium uppercase tracking-wider text-sm flex items-center gap-2">
+                            <MapPinned className="w-4 h-4" />
+                            Dispatch Destination
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-lg font-semibold text-foreground">{selectedDestination.hospitalName}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Pickup: {selectedDestination.pickupLat.toFixed(4)}, {selectedDestination.pickupLng.toFixed(4)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Destination: {selectedDestination.lat.toFixed(4)}, {selectedDestination.lng.toFixed(4)}
+                        </p>
+                    </CardContent>
+                </Card>
 
                 <Card className="bg-background shadow-inner">
                     <CardHeader className="pb-2 text-center">
