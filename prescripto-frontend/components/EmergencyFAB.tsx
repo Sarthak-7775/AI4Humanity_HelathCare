@@ -274,7 +274,7 @@ export default function EmergencyFAB() {
                                 </p>
                             </div>
 
-                            <div className="mt-8 space-y-5">
+                            <div className="mt-8 space-y-5 max-h-[60vh] overflow-y-auto pr-2">
                                 {!selectedType && (
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Select Hospital Type</h3>
@@ -328,88 +328,79 @@ export default function EmergencyFAB() {
                                                     </div>
                                                 ) : (
                                                     hospitals.map((hospital) => (
-                                                        <button
-                                                            key={hospital.id}
-                                                            type="button"
-                                                            onClick={() => setSelectedHospital(hospital)}
-                                                            className={`w-full rounded-xl border p-4 text-left transition ${
-                                                                selectedHospital?.id === hospital.id
-                                                                    ? 'border-primary bg-primary/5'
-                                                                    : 'border-border bg-card hover:border-primary/60'
-                                                            }`}
-                                                        >
-                                                            <div className="flex items-start justify-between gap-4">
-                                                                <div>
-                                                                    <div className="font-semibold text-foreground">{hospital.name}</div>
-                                                                    <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                                                                        <MapPin size={14} />
-                                                                        {hospital.distance_km.toFixed(1)} km away
+                                                        <div key={hospital.id} className="flex flex-col gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedHospital(hospital)}
+                                                                className={`w-full rounded-xl border p-4 text-left transition ${
+                                                                    selectedHospital?.id === hospital.id
+                                                                        ? 'border-primary bg-primary/5'
+                                                                        : 'border-border bg-card hover:border-primary/60'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start justify-between gap-4">
+                                                                    <div>
+                                                                        <div className="font-semibold text-foreground">{hospital.name}</div>
+                                                                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                                                                            <MapPin size={14} />
+                                                                            {hospital.distance_km.toFixed(1)} km away
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-700">
+                                                                        {hospital.available_beds} beds
                                                                     </div>
                                                                 </div>
-                                                                <div className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-700">
-                                                                    {hospital.available_beds} beds
+                                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                                    {hospital.specialties.slice(0, 3).map((specialty) => (
+                                                                        <span key={specialty} className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                                                                            {specialty}
+                                                                        </span>
+                                                                    ))}
                                                                 </div>
-                                                            </div>
-                                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                                {hospital.specialties.slice(0, 3).map((specialty) => (
-                                                                    <span key={specialty} className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
-                                                                        {specialty}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </button>
+                                                            </button>
+
+                                                            {selectedHospital?.id === hospital.id && (
+                                                                <motion.div
+                                                                    initial={{ height: 0, opacity: 0 }}
+                                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                                    className="overflow-hidden"
+                                                                >
+                                                                    <div className="grid gap-3 md:grid-cols-3 mt-2">
+                                                                        <a
+                                                                            href={googleMapsLink}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                                                                        >
+                                                                            <Navigation size={16} />
+                                                                            Maps
+                                                                        </a>
+                                                                        <a
+                                                                            href={uberLink}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background hover:opacity-90"
+                                                                        >
+                                                                            <Car size={16} />
+                                                                            Uber
+                                                                        </a>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={handleAmbulanceRedirect}
+                                                                            className="flex items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground hover:opacity-90"
+                                                                        >
+                                                                            <Phone size={16} />
+                                                                            Ambulance
+                                                                        </button>
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </div>
                                                     ))
                                                 )}
                                             </div>
                                         )}
                                     </>
-                                )}
-
-                                {selectedHospital && (
-                                    <div className="space-y-4 rounded-xl border border-border bg-muted/40 p-4">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <div className="text-sm text-muted-foreground">Selected hospital</div>
-                                                <div className="text-lg font-bold text-foreground">{selectedHospital.name}</div>
-                                            </div>
-                                            <div className="rounded-full bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-                                                {selectedHospital.available_beds} available beds
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-3 md:grid-cols-3">
-                                            <a
-                                                href={googleMapsLink}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                                            >
-                                                <Navigation size={16} />
-                                                Google Maps
-                                            </a>
-                                            <a
-                                                href={uberLink}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background hover:opacity-90"
-                                            >
-                                                <Car size={16} />
-                                                Uber
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onClick={handleAmbulanceRedirect}
-                                                className="flex items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground hover:opacity-90"
-                                            >
-                                                <Phone size={16} />
-                                                In-App Ambulance
-                                            </button>
-                                        </div>
-
-                                        <div className="text-xs text-muted-foreground">
-                                            Google Maps and Uber will open with your pickup location and the selected hospital as the destination. In-App Ambulance takes you to the live logistics dashboard.
-                                        </div>
-                                    </div>
                                 )}
                             </div>
                         </motion.div>
