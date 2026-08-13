@@ -129,7 +129,7 @@ export default function Home() {
         {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2753&auto=format&fit=crop")' }}
+          style={{ backgroundImage: 'url("/pexels-rdne-6129681.jpg")' }}
         >
           <div className="absolute inset-0 bg-slate-900/60 mix-blend-multiply" />
         </div>
