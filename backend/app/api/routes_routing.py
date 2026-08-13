@@ -1,15 +1,99 @@
 # backend/app/api/routes_routing.py
 import urllib.parse
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models import Hospital
-from app.schemas import EmergencyRequest, EmergencyResponse
+from app.schemas import EmergencyHospitalListResponse, EmergencyHospitalOption, EmergencyRequest, EmergencyResponse
 from app.services.routing_engine import calculate_eta, calculate_haversine_distance
 
 router = APIRouter(prefix="/emergency", tags=["Routing & Logistics"])
+
+def _hospital_type_for_budget(budget_tier: str):
+    tier = (budget_tier or "").lower()
+    if tier in {"low", "government"}:
+        return "government"
+    return "private"
+
+
+def _site_links_for_hospital(hospital: Hospital):
+    name = (hospital.name or "").lower()
+    if "aiims" in name or "lok nayak" in name or "safdarjung" in name or "gov" in name:
+        return {
+            "website_link": None,
+            "ors_link": "https://ors.gov.in/",
+        }
+    if "apollo" in name:
+        return {
+            "website_link": "https://www.apollohospitals.com/",
+            "ors_link": None,
+        }
+    if "fortis" in name:
+        return {
+            "website_link": "https://www.fortishealthcare.com/",
+            "ors_link": None,
+        }
+    if "max" in name:
+        return {
+            "website_link": "https://www.maxhealthcare.in/",
+            "ors_link": None,
+        }
+    return {
+        "website_link": "https://www.google.com/search?q=" + urllib.parse.quote(hospital.name),
+        "ors_link": "https://ors.gov.in/",
+    }
+
+
+@router.get("/hospitals", response_model=EmergencyHospitalListResponse)
+def get_hospitals_nearby(
+    user_latitude: float = Query(...),
+    user_longitude: float = Query(...),
+    type: str = Query("all"),
+    db: Session = Depends(get_db),
+):
+    hospitals = db.query(Hospital).filter(Hospital.available_beds > 0).all()
+    if not hospitals:
+        raise HTTPException(status_code=404, detail="No hospitals are currently available.")
+
+    normalized_type = (type or "all").lower()
+    filtered = []
+    for hospital in hospitals:
+        hospital_type = _hospital_type_for_budget(hospital.budget_tier or "Medium")
+        if normalized_type != "all" and hospital_type != normalized_type:
+            continue
+        dist = calculate_haversine_distance(user_latitude, user_longitude, hospital.latitude, hospital.longitude)
+        filtered.append({
+            "hospital": hospital,
+            "distance_km": round(dist, 2),
+            "type": hospital_type,
+        })
+
+    filtered.sort(key=lambda item: item["distance_km"])
+    hospital_options = []
+    for item in filtered:
+        hospital = item["hospital"]
+        links = _site_links_for_hospital(hospital)
+        hospital_options.append(EmergencyHospitalOption(
+            id=hospital.id,
+            name=hospital.name,
+            type=item["type"],
+            distance_km=item["distance_km"],
+            specialties=hospital.specialties or [],
+            available_beds=hospital.available_beds,
+            latitude=hospital.latitude,
+            longitude=hospital.longitude,
+            website_link=links["website_link"],
+            ors_link=links["ors_link"],
+        ))
+
+    return EmergencyHospitalListResponse(
+        hospitals=hospital_options,
+        user_latitude=user_latitude,
+        user_longitude=user_longitude,
+    )
+
 
 @router.post("/find-fastest-hospital", response_model=EmergencyResponse)
 def find_fastest_hospital(request: EmergencyRequest, db: Session = Depends(get_db)):

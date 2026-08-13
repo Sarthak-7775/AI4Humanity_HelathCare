@@ -326,7 +326,7 @@ export default function Home() {
           
           <div className="mt-10 text-center md:hidden">
             <Button variant="outline" asChild size="lg" className="w-full">
-              <Link href="/all-doctors">View All Hospitals</Link>
+              <Link href="/all-hospitals">View All Hospitals</Link>
             </Button>
           </div>
         </div>

@@ -56,6 +56,23 @@ class EmergencyResponse(BaseModel):
     uber_deep_link: str
     google_maps_link: str
 
+class EmergencyHospitalOption(BaseModel):
+    id: int
+    name: str
+    type: str
+    distance_km: float
+    specialties: list[str]
+    available_beds: int
+    latitude: float
+    longitude: float
+    website_link: str | None = None
+    ors_link: str | None = None
+
+class EmergencyHospitalListResponse(BaseModel):
+    hospitals: list[EmergencyHospitalOption]
+    user_latitude: float
+    user_longitude: float
+
 # --- Appointment Schemas ---
 class AppointmentCreate(BaseModel):
     patient_id: int
