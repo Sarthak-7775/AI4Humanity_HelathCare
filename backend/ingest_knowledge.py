@@ -11,6 +11,11 @@ from llama_index.vector_stores.postgres import PGVectorStore
 # Load environment variables (Neon DB credentials and OpenAI Key)
 load_dotenv()
 
+from llama_index.core import Settings
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
+Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+
 def ingest_data():
     print("Loading medical documents from /data folder...")
     # 1. Load documents from the 'data' directory
@@ -20,20 +25,29 @@ def ingest_data():
     print(f"Loaded {len(documents)} document(s).")
 
     print("Connecting to Neon PostgreSQL...")
+    import urllib.parse
+
+    db_url = os.getenv("NEON_DATABASE_URL")
+    if not db_url:
+        raise ValueError("NEON_DATABASE_URL environment variable is missing")
+
+    parsed_url = urllib.parse.urlparse(db_url)
+
     # 2. Connect to Neon DB and specify the pgvector table name
     vector_store = PGVectorStore.from_params(
-        database=os.getenv("POSTGRES_DB", "neondb"),
-        host=os.getenv("POSTGRES_HOST"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        port=os.getenv("POSTGRES_PORT", 5432),
-        user=os.getenv("POSTGRES_USER"),
+        database=parsed_url.path.lstrip("/"),
+        host=parsed_url.hostname,
+        password=parsed_url.password,
+        port=parsed_url.port or 5432,
+        user=parsed_url.username,
         table_name="medical_knowledge_base_v2",
-        embed_dim=384,    )
+        embed_dim=384,
+    )
 
     # 3. Setup LlamaIndex storage context
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-    print("Generating embeddings via OpenAI and saving to Neon DB...")
+    print("Generating embeddings via HuggingFace and saving to Neon DB...")
     # 4. Chunk the text, generate embeddings, and store them in PostgreSQL
     index = VectorStoreIndex.from_documents(
         documents, 
@@ -41,7 +55,7 @@ def ingest_data():
         show_progress=True
     )
     
-    print("✅ Knowledge Base Successfully Assembled and Stored in Neon DB!")
+    print("Knowledge Base Successfully Assembled and Stored in Neon DB!")
 
 
 def ingest_patient_report(file_path: str, user_id: str):

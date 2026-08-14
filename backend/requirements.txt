@@ -17,3 +17,4 @@ llama-index
 llama-index-vector-stores-postgres
 llama-index-llms-openai
 openai
+llama-index-embeddings-huggingface

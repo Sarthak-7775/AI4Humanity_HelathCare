@@ -77,12 +77,11 @@ def analyze_symptoms(user_input: str, user_id: str) -> ChatbotResponse:
 
     if query_engine is None:
         return ChatbotResponse(
-            urgency="non-urgent",
+            urgency_level="non-urgent",
             probable_causes=["Unable to access the AI knowledge base in this environment."],
-            suggested_actions=["Please consult a medical professional if symptoms worsen."],
+            triage_advice="Please consult a medical professional if symptoms worsen. The local AI knowledge base is unavailable, so this response uses a safe fallback recommendation.",
             recommended_tests=["General blood work and review of recent symptoms"],
             recommended_department="General Medicine",
-            explanation="The local AI knowledge base is unavailable, so this response uses a safe fallback recommendation.",
         )
 
     prompt = (
