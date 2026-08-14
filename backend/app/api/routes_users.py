@@ -102,8 +102,20 @@ async def upload_profile_avatar(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload avatar: {e}")
 
-    region = os.getenv("AWS_REGION")
-    current_user.avatar_url = f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{unique_filename}"
+    if not BUCKET_NAME:
+        raise HTTPException(status_code=500, detail="Storage bucket is not configured.")
+
+    try:
+        avatar_url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': BUCKET_NAME, 'Key': unique_filename},
+            ExpiresIn=3600,
+        )
+    except Exception:
+        region = os.getenv("AWS_REGION")
+        avatar_url = f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{unique_filename}"
+
+    current_user.avatar_url = avatar_url
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

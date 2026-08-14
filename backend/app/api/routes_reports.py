@@ -59,8 +59,20 @@ async def upload_medical_report(
             ExtraArgs={"ContentType": file.content_type},
         )
 
-        region = os.getenv("AWS_REGION")
-        report_url = f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{unique_filename}"
+        # Generate a presigned URL so the frontend can securely fetch the object
+        if not BUCKET_NAME:
+            raise HTTPException(status_code=500, detail="Storage bucket is not configured.")
+
+        try:
+            report_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': BUCKET_NAME, 'Key': unique_filename},
+                ExpiresIn=3600,  # 1 hour
+            )
+        except Exception:
+            # Fallback to the public URL pattern if presign fails
+            region = os.getenv("AWS_REGION")
+            report_url = f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{unique_filename}"
 
         new_report = MedicalReport(
             patient_id=patient_id,
