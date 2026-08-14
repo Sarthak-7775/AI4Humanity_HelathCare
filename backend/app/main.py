@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     routes_appointment,
-    routes_chatbot,
+    routes_triage,
     routes_reports,
     routes_routing,
     routes_telemetry,
@@ -42,7 +42,7 @@ app.add_middleware(
 app.include_router(routes_users.router)
 app.include_router(routes_reports.router)
 app.include_router(routes_routing.router)
-app.include_router(routes_chatbot.router)
+app.include_router(routes_triage.router)
 app.include_router(routes_appointment.router)
 
 @app.get("/")
