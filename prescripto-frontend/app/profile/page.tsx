@@ -35,7 +35,7 @@ export default function UnifiedProfilePage() {
     const setAuth = useAuth((state) => state.setAuth);
 
     const [reports, setReports] = useState<{ id: string, name: string, url: string }[]>([
-        { id: '1', name: 'Blood_Test_Results_2026.pdf', url: '/sample.pdf' } // Dummy PDF URL
+        { id: '1', name: 'Blood_Test_Results_2026.pdf', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' } // Public test PDF
     ]);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -57,7 +57,21 @@ export default function UnifiedProfilePage() {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
 
-            const uploadedUrl = response.data.url || URL.createObjectURL(file);
+            let uploadedUrl = response.data.url || URL.createObjectURL(file);
+
+            // Try to fetch the uploaded file and use an object URL (safer for viewers and CORS)
+            try {
+                const fetched = await fetch(response.data.url);
+                if (fetched.ok) {
+                    const blob = await fetched.blob();
+                    const objectUrl = URL.createObjectURL(blob);
+                    uploadedUrl = objectUrl;
+                }
+            } catch (e) {
+                // If fetching fails, fall back to the URL provided by the backend or local blob
+                console.warn('Could not fetch uploaded file to create object URL, using backend URL instead.', e);
+            }
+
             setReports((prev) => [...prev, { id: response.data.report_id?.toString() || Date.now().toString(), name: file.name, url: uploadedUrl }]);
             setSelectedPdf(uploadedUrl);
             toast.success(response.data.message || 'Medical report securely uploaded to cloud storage.');
