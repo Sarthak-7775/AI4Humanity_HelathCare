@@ -62,7 +62,11 @@ function LogisticsDashboardContent() {
     // WebSocket Connection for Phase 6 Telemetry
     useEffect(() => {
         try {
-            const ws = new WebSocket('ws://localhost:8000/ws/ambulance-tracker/demo-ambulance');
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+            const wsUrl = apiUrl
+                .replace(/^https:/, 'wss:')
+                .replace(/^http:/, 'ws:');
+            const ws = new WebSocket(`${wsUrl}/ws/ambulance-tracker/demo-ambulance`);
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
