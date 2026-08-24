@@ -2,38 +2,50 @@ import os
 
 from app.schemas import ChatbotResponse
 
-try:
-    from llama_index.core import Settings, VectorStoreIndex
-    from llama_index.core.vector_stores.types import (
-        FilterCondition,
-        FilterOperator,
-        MetadataFilter,
-        MetadataFilters,
-    )
-    from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-    from llama_index.llms.openai import OpenAI
-    from llama_index.vector_stores.postgres import PGVectorStore
 
-    Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1)
-    Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
-    LLAMA_INDEX_AVAILABLE = True
-except Exception:  # pragma: no cover - fallback for local/offline development
-    Settings = None
-    VectorStoreIndex = None
-    FilterCondition = None
-    FilterOperator = None
-    MetadataFilter = None
-    MetadataFilters = None
-    HuggingFaceEmbedding = None
-    OpenAI = None
-    PGVectorStore = None
-    LLAMA_INDEX_AVAILABLE = False
+def _load_rag_dependencies():
+    try:
+        from llama_index.core import Settings, VectorStoreIndex
+        from llama_index.core.vector_stores.types import (
+            FilterCondition,
+            FilterOperator,
+            MetadataFilter,
+            MetadataFilters,
+        )
+        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+        from llama_index.llms.openai import OpenAI
+        from llama_index.vector_stores.postgres import PGVectorStore
+
+        Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1)
+        Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        return (
+            Settings,
+            VectorStoreIndex,
+            FilterCondition,
+            FilterOperator,
+            MetadataFilter,
+            MetadataFilters,
+            PGVectorStore,
+        )
+    except Exception:  # pragma: no cover - fallback for local/offline development
+        return None
 
 
 def get_rag_query_engine(user_id: str):
     """Initializes the connection and applies strict patient-level filtering."""
-    if not LLAMA_INDEX_AVAILABLE:
+    dependencies = _load_rag_dependencies()
+    if dependencies is None:
         return None
+
+    (
+        _settings,
+        VectorStoreIndex,
+        FilterCondition,
+        FilterOperator,
+        MetadataFilter,
+        MetadataFilters,
+        PGVectorStore,
+    ) = dependencies
 
     db_url = os.getenv("NEON_DATABASE_URL")
     if not db_url:

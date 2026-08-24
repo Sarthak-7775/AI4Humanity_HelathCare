@@ -5,26 +5,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-try:
-    from llama_index.core import (
-        Settings,
-        SimpleDirectoryReader,
-        StorageContext,
-        VectorStoreIndex,
-    )
-    from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-    from llama_index.vector_stores.postgres import PGVectorStore
 
-    Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
-    LLAMA_INDEX_AVAILABLE = True
-except Exception:  # pragma: no cover - fallback for local/offline development
-    Settings = None
-    SimpleDirectoryReader = None
-    StorageContext = None
-    VectorStoreIndex = None
-    HuggingFaceEmbedding = None
-    PGVectorStore = None
-    LLAMA_INDEX_AVAILABLE = False
+def _load_report_dependencies():
+    try:
+        from llama_index.core import (
+            Settings,
+            SimpleDirectoryReader,
+            StorageContext,
+            VectorStoreIndex,
+        )
+        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+        from llama_index.vector_stores.postgres import PGVectorStore
+
+        Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        return SimpleDirectoryReader, StorageContext, VectorStoreIndex, PGVectorStore
+    except Exception:  # pragma: no cover - fallback for local/offline development
+        return None
 
 
 def process_and_vectorize_report(file_bytes: bytes, file_name: str, user_id: str):
@@ -38,9 +34,12 @@ def process_and_vectorize_report(file_bytes: bytes, file_name: str, user_id: str
         temp_file_path = temp_file.name
 
     try:
-        if not LLAMA_INDEX_AVAILABLE:
+        dependencies = _load_report_dependencies()
+        if dependencies is None:
             print(f"LlamaIndex dependencies are unavailable; skipping vectorization for '{file_name}'.")
             return
+
+        SimpleDirectoryReader, StorageContext, VectorStoreIndex, PGVectorStore = dependencies
 
         # 2. Read the PDF content
         documents = SimpleDirectoryReader(input_files=[temp_file_path]).load_data()
