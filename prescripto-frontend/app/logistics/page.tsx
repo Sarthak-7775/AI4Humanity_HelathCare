@@ -62,7 +62,7 @@ function LogisticsDashboardContent() {
     // WebSocket Connection for Phase 6 Telemetry
     useEffect(() => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+            const apiUrl = 'https://ai4humanity-helathcare.onrender.com';
             const wsUrl = apiUrl
                 .replace(/^https:/, 'wss:')
                 .replace(/^http:/, 'ws:');
