@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuth } from './store/useAuth';
 
 const api = axios.create({
-  baseURL: 'https://ai4humanity-helathcare.onrender.com',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://ai4humanity-helathcare.onrender.com',
 });
 
 // Request interceptor to add the auth token header to every request
