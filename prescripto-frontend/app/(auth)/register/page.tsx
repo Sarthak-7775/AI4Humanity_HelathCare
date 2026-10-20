@@ -47,7 +47,8 @@ export default function RegisterPage() {
       router.push("/login");
     } catch (error: any) {
       if (!error.response) {
-        toast.error("Network error: Could not reach the backend server. Is it running?");
+        const backendOrigin = api.defaults.baseURL ?? "the configured API URL";
+        toast.error(`Could not read a response from ${backendOrigin}. Check the backend CORS settings and deployment logs.`);
       } else {
         const detail = error.response?.data?.detail || "Failed to create account.";
         toast.error(typeof detail === "string" ? detail : "Failed to create account.");

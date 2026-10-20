@@ -15,4 +15,4 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://ai-4-humanity-hackthon-nsut-ejp2.vercel.app
+        value: https://ai-4-humanity-helath-care-8gzb.vercel.app,https://ai-4-humanity-hackthon-nsut-ejp2.vercel.app

@@ -40,10 +40,14 @@ cors_origins = [
     ).split(",")
     if origin.strip()
 ]
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX")
+if not cors_origin_regex:
+    cors_origin_regex = r"https://ai-4-humanity-helath-care-[a-z0-9-]+\.vercel\.app"
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,3 +62,5 @@ app.include_router(routes_appointment.router)
 @app.get("/")
 def health_check():
     return {"status": "Prescripto Backend is running flawlessly!"}
+
+    
